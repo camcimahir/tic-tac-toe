@@ -1,6 +1,11 @@
 # Tic-Tac-Toe (Dear ImGui)
 
-I built a Tic-Tac-Toe game using Dear ImGui, C++ and the prebuilt boardgame building class system by Proffesor Graeme Devine.
+I built a Tic-Tac-Toe game with a playable AI that always plays second. The AI is built using Negamax with alpha-beta pruning. I am using Dear ImGui, C++ and the prebuilt boardgame building class system by Proffesor Graeme Devine.
+
+## System & Tools
+* **OS:** Windows 10/11
+* **Language:** C++
+* **Dependencies:** Dear ImGui, CMake
 
 ## Game
 * **Modes:** Currently the game is played with an AI that makes random moves
@@ -17,4 +22,5 @@ I built a Tic-Tac-Toe game using Dear ImGui, C++ and the prebuilt boardgame buil
 * I implemented a loop-up table using arrays to check each of the 8 winning triples possible in tic tac toe
 
 ### 4. AI
-* current AI randomly selects one of the empty squares and places its piece there
+* I am using negamax algorithm with alpha-beta pruning for the AI
+* The way my negamax algorithm works is that it recursively runs through every possible move all the way up to their end state and determine a mathematical value for that move (+1 for a win, -1 for a loss, and 0 for a tie). The best move from each call is determined and selected. the provided value from that simulated move is negated and for the next move the value is calculated in the perspective of the players turn so the function only uses the point value provided for the best move that the opponent can make.

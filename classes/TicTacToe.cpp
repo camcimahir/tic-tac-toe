@@ -331,34 +331,89 @@ void TicTacToe::setStateString(const std::string &s)
 //
 // this is the function that will be called by the AI
 //
-void TicTacToe::updateAI() 
-{
-    // first AI will play as random moves for now
-    //get the current state string
-    std::string currentState = stateString();
-    std::vector<int> emptySquares;
+void TicTacToe::updateAI(){
 
-    // find all empty squares
-    for (int i = 0; i < 9; i++) {
-        if (currentState[i] == '0') {
-            emptySquares.push_back(i);
+    std::string currentState = stateString();
+
+    int bestMove = -10000;
+    int bestSquare = -1;
+
+    //we iterate all the possible moves
+    for (int i = 0; i < 9; i++){
+        if(currentState[i] == '0') {
+            //make the move
+            currentState[i] = '2';
+            //call the first negamax
+            int newValue = -negamax(currentState, 0, -10000, 10000, HUMAN_PLAYER);
+            if (newValue >bestMove){
+                bestSquare = i;
+                bestMove = newValue;
+            }
+            currentState[i] = '0';
         }
     }
 
-    // if there are no empty squares, return
-    if (emptySquares.empty()) return;
-
-    // pick a random empty square
-    int randomIndex = rand() % emptySquares.size();
-    int targetIndex = emptySquares[randomIndex];
-
-    // place the AI's piece there
-    int y = targetIndex / 3;
-    int x = targetIndex % 3;
-    actionForEmptyHolder(&_grid[y][x]);
-    // DON'T FORGET TO END THE TURN
-    endTurn();
-
-    // we will implement the AI in the next assignment!
+    if (bestSquare != -1) {
+        actionForEmptyHolder(&_grid[bestSquare/3][bestSquare%3]);
+        endTurn();
+    }
 }
 
+bool aiTestForTerminalState(std::string &state){
+    return (state.find('0') == std::string::npos);
+}
+
+int aiBoardEval(std::string& state) {
+    //this function is basically the same as checkforwinner so its kinda repetitive 
+    static const int kWinningTriples[8][3] = { {0, 1, 2}, {3, 4, 5}, {6, 7, 8},
+                                               {0, 3, 6}, {1, 4, 7}, {2, 5, 8},
+                                               {0, 4, 8}, {2, 4, 6} };
+
+    for (int i = 0; i<8; i++){
+        const int *triple = kWinningTriples[i];
+        char player = state[triple[0]];
+        if (player != '0') {
+            if (player == state[triple[1]] && player == state[triple[2]]) {
+                // '2 is a win for AI, '1' is a win for human
+                return (player == '2') ? 1 : -1;
+            }
+        }
+    }
+    return false;
+}
+
+int TicTacToe::negamax(std::string& state, int depth, int alpha, int beta, int playerColor){
+
+
+    if (aiBoardEval(state) != 0){
+        // I am using 0 and 1 for player and ai values so here I am making sure the color assinging is correct
+        int colorSign = (playerColor == 1) ? 1 : -1; 
+        return aiBoardEval(state) * colorSign;
+    }
+    //return when we reach terminal state
+    if (aiTestForTerminalState(state)){
+        return 0;
+    }
+
+    int bestVal = -10000;
+
+    for (int i = 0; i< 9; i++){
+        if (state[i] == '0') {
+            //make the move for the proper player
+            state[i] = playerColor == HUMAN_PLAYER ? '1' : '2';
+            //we do a recursive call to negamax which collects the value of that move and iteratively comes up with a value for that move
+            int newVal = -negamax(state, depth+1, -beta, -alpha, (playerColor + 1) % 2);
+            //during that process only best moves are kept and returned
+            if (newVal > bestVal){
+                bestVal = newVal;
+            }
+            state[i] = '0';
+            //alpa beta pruning, if alpha is greater than beta than we cut off that branch
+            if (alpha >= beta){
+                break;
+            }
+        }
+    }
+
+    return bestVal;
+}
